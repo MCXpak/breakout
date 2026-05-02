@@ -2,8 +2,9 @@
 #include <GLFW/glfw3.h>
 #include <iostream>
 #include <vector>
-#include "Shader.h"
 #include "camera.h"
+#include "Shader.h"
+#define SHADER_H
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 #include <glm/glm.hpp>
@@ -32,54 +33,54 @@ float pitch = 0.0f;
 float fov = 45.0f;
 
 std::vector<float> vertices = {
-    // Position (3)  | Color (3)     | Tex Coords (2)
+    // Position (3)  | Normal (3)     | Tex Coords (2)    
     // --- Face 1: -Z (Front) ---
-    -0.5f, -0.5f, -0.5f,   0.5f, 0.0f, 0.0f,   0.0f, 0.0f,
-     0.5f, -0.5f, -0.5f,   0.5f, 0.0f, 0.0f,   1.0f, 0.0f,
-     0.5f,  0.5f, -0.5f,   0.5f, 0.0f, 0.0f,   1.0f, 1.0f,
-     0.5f,  0.5f, -0.5f,   0.5f, 0.0f, 0.0f,   1.0f, 1.0f,
-    -0.5f,  0.5f, -0.5f,   0.5f, 0.0f, 0.0f,   0.0f, 1.0f,
-    -0.5f, -0.5f, -0.5f,   0.5f, 0.0f, 0.0f,   0.0f, 0.0f,
+	-0.5f, -0.5f, -0.5f,   0.0f, 0.0f, -1.0f,   0.0f, 0.0f,
+     0.5f, -0.5f, -0.5f,   0.0f, 0.0f, -1.0f,   1.0f, 0.0f,
+     0.5f,  0.5f, -0.5f,   0.0f, 0.0f, -1.0f,   1.0f, 1.0f,
+     0.5f,  0.5f, -0.5f,   0.0f, 0.0f, -1.0f,   1.0f, 1.0f,
+    -0.5f,  0.5f, -0.5f,   0.0f, 0.0f, -1.0f,   0.0f, 1.0f,
+    -0.5f, -0.5f, -0.5f,   0.0f, 0.0f, -1.0f,   0.0f, 0.0f,
 
     // --- Face 2: +Z (Back) ---
-    -0.5f, -0.5f,  0.5f,   0.5f, 0.0f, 0.0f,   0.0f, 0.0f,
-     0.5f, -0.5f,  0.5f,   0.5f, 0.0f, 0.0f,   1.0f, 0.0f,
-     0.5f,  0.5f,  0.5f,   0.5f, 0.0f, 0.0f,   1.0f, 1.0f,
-     0.5f,  0.5f,  0.5f,   0.5f, 0.0f, 0.0f,   1.0f, 1.0f,
-    -0.5f,  0.5f,  0.5f,   0.5f, 0.0f, 0.0f,   0.0f, 1.0f,
-    -0.5f, -0.5f,  0.5f,   0.5f, 0.0f, 0.0f,   0.0f, 0.0f,
+    -0.5f, -0.5f,  0.5f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,
+     0.5f, -0.5f,  0.5f,   0.0f, 0.0f, 1.0f,   1.0f, 0.0f,
+     0.5f,  0.5f,  0.5f,   0.0f, 0.0f, 1.0f,   1.0f, 1.0f,
+     0.5f,  0.5f,  0.5f,   0.0f, 0.0f, 1.0f,   1.0f, 1.0f,
+    -0.5f,  0.5f,  0.5f,   0.0f, 0.0f, 1.0f,   0.0f, 1.0f,
+    -0.5f, -0.5f,  0.5f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,
 
     // --- Face 3: -X (Left) ---
-    -0.5f,  0.5f,  0.5f,   0.5f, 0.0f, 0.0f,   1.0f, 0.0f,
-    -0.5f,  0.5f, -0.5f,   0.5f, 0.0f, 0.0f,   1.0f, 1.0f,
-    -0.5f, -0.5f, -0.5f,   0.5f, 0.0f, 0.0f,   0.0f, 1.0f,
-    -0.5f, -0.5f, -0.5f,   0.5f, 0.0f, 0.0f,   0.0f, 1.0f,
-    -0.5f, -0.5f,  0.5f,   0.5f, 0.0f, 0.0f,   0.0f, 0.0f,
-    -0.5f,  0.5f,  0.5f,   0.5f, 0.0f, 0.0f,   1.0f, 0.0f,
+    -0.5f,  0.5f,  0.5f,   -1.0f, 0.0f, 0.0f,   1.0f, 0.0f,
+    -0.5f,  0.5f, -0.5f,   -1.0f, 0.0f, 0.0f,   1.0f, 1.0f,
+    -0.5f, -0.5f, -0.5f,   -1.0f, 0.0f, 0.0f,   0.0f, 1.0f,
+    -0.5f, -0.5f, -0.5f,   -1.0f, 0.0f, 0.0f,   0.0f, 1.0f,
+    -0.5f, -0.5f,  0.5f,   -1.0f, 0.0f, 0.0f,   0.0f, 0.0f,
+    -0.5f,  0.5f,  0.5f,   -1.0f, 0.0f, 0.0f,   1.0f, 0.0f,
 
     // --- Face 4: +X (Right) ---
-     0.5f,  0.5f,  0.5f,   0.5f, 0.0f, 0.0f,   1.0f, 0.0f,
-     0.5f,  0.5f, -0.5f,   0.5f, 0.0f, 0.0f,   1.0f, 1.0f,
-     0.5f, -0.5f, -0.5f,   0.5f, 0.0f, 0.0f,   0.0f, 1.0f,
-     0.5f, -0.5f, -0.5f,   0.5f, 0.0f, 0.0f,   0.0f, 1.0f,
-     0.5f, -0.5f,  0.5f,   0.5f, 0.0f, 0.0f,   0.0f, 0.0f,
-     0.5f,  0.5f,  0.5f,   0.5f, 0.0f, 0.0f,   1.0f, 0.0f,
+     0.5f,  0.5f,  0.5f,   1.0f, 0.0f, 0.0f,   1.0f, 0.0f,
+     0.5f,  0.5f, -0.5f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f,
+     0.5f, -0.5f, -0.5f,   1.0f, 0.0f, 0.0f,   0.0f, 1.0f,
+     0.5f, -0.5f, -0.5f,   1.0f, 0.0f, 0.0f,   0.0f, 1.0f,
+     0.5f, -0.5f,  0.5f,   1.0f, 0.0f, 0.0f,   0.0f, 0.0f,
+     0.5f,  0.5f,  0.5f,   1.0f, 0.0f, 0.0f,   1.0f, 0.0f,
 
      // --- Face 5: -Y (Bottom) ---
-     -0.5f, -0.5f, -0.5f,   0.5f, 0.0f, 0.0f,   0.0f, 1.0f,
-      0.5f, -0.5f, -0.5f,   0.5f, 0.0f, 0.0f,   1.0f, 1.0f,
-      0.5f, -0.5f,  0.5f,   0.5f, 0.0f, 0.0f,   1.0f, 0.0f,
-      0.5f, -0.5f,  0.5f,   0.5f, 0.0f, 0.0f,   1.0f, 0.0f,
-     -0.5f, -0.5f,  0.5f,   0.5f, 0.0f, 0.0f,   0.0f, 0.0f,
-     -0.5f, -0.5f, -0.5f,   0.5f, 0.0f, 0.0f,   0.0f, 1.0f,
+     -0.5f, -0.5f, -0.5f,   0.0f, -1.0f, 0.0f,   0.0f, 1.0f,
+      0.5f, -0.5f, -0.5f,   0.0f, -1.0f, 0.0f,   1.0f, 1.0f,
+      0.5f, -0.5f,  0.5f,   0.0f, -1.0f, 0.0f,   1.0f, 0.0f,
+      0.5f, -0.5f,  0.5f,   0.0f, -1.0f, 0.0f,   1.0f, 0.0f,
+     -0.5f, -0.5f,  0.5f,   0.0f, -1.0f, 0.0f,   0.0f, 0.0f,
+     -0.5f, -0.5f, -0.5f,   0.0f, -1.0f, 0.0f,   0.0f, 1.0f,
 
      // --- Face 6: +Y (Top) ---
-     -0.5f,  0.5f, -0.5f,   0.5f, 0.0f, 0.0f,   0.0f, 1.0f,
-      0.5f,  0.5f, -0.5f,   0.5f, 0.0f, 0.0f,   1.0f, 1.0f,
-      0.5f,  0.5f,  0.5f,   0.5f, 0.0f, 0.0f,   1.0f, 0.0f,
-      0.5f,  0.5f,  0.5f,   0.5f, 0.0f, 0.0f,   1.0f, 0.0f,
-     -0.5f,  0.5f,  0.5f,   0.5f, 0.0f, 0.0f,   0.0f, 0.0f,
-     -0.5f,  0.5f, -0.5f,   0.5f, 0.0f, 0.0f,   0.0f, 1.0f
+     -0.5f,  0.5f, -0.5f,   0.0f, 1.0f, 0.0f,   0.0f, 1.0f,
+      0.5f,  0.5f, -0.5f,   0.0f, 1.0f, 0.0f,   1.0f, 1.0f,
+      0.5f,  0.5f,  0.5f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f,
+      0.5f,  0.5f,  0.5f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f,
+     -0.5f,  0.5f,  0.5f,   0.0f, 1.0f, 0.0f,   0.0f, 0.0f,
+     -0.5f,  0.5f, -0.5f,   0.0f, 1.0f, 0.0f,   0.0f, 1.0f
 };
 
 std::vector<int> indices = {  // note that we start from 0!
@@ -119,47 +120,51 @@ int main()
 
 
     Shader shader("./shader.vs", "./shader.fs");
+    Shader lightObjectShader("./lightObjectShader.vs", "./lightObjectShader.fs");
 
     ResourceManager manager;
 
     std::vector<Entity> entities;
     std::vector<Entity> bricks;
 
-    // Create ball
-    Entity ball(manager.createMesh("cube", vertices, indices, 36), 3, 0, 11);
-    ball.velX = 0.001;
-    ball.velZ = 0.001;
+    // Create ball (use float literals to avoid double->float truncation warnings)
+    Entity ball(manager.createMesh("cube", vertices, indices, 36), 3.0f, 0.0f, 11.0f);
+    ball.velX = 0.001f;
+    ball.velZ = 0.001f;
     entities.push_back(ball);
 
-    // Create grid of breakout bricks
-    for (int i = 0; i < grid.size(); i++) {
-        for (int j = 0; j < grid[i].size(); j++) {
+    // Create grid of breakout bricks (cast indices to float)
+    for (int i = 0; i < static_cast<int>(grid.size()); i++) {
+        for (int j = 0; j < static_cast<int>(grid[i].size()); j++) {
             if (grid[i][j] == 1) {
-                Entity ent(manager.createMesh("cube", vertices, indices, 36), j, 0, i);
+                Entity ent(manager.createMesh("cube", vertices, indices, 36),
+                           static_cast<float>(j), 0.0f, static_cast<float>(i));
                 entities.push_back(ent);
             }
         }
     };
 
-    Entity wallRight(manager.createMesh("cube", vertices, indices, 36), 7, 0, 7);
-    wallRight.scale(1, 1, 15);
+    Entity wallRight(manager.createMesh("cube", vertices, indices, 36), 7.0f, 0.0f, 7.0f);
+    wallRight.scale(1.0f, 1.0f, 15.0f);
     wallRight.type = 2;
     entities.push_back(wallRight);
 
-    Entity wallLeft(manager.createMesh("cube", vertices, indices, 36), -1, 0, 7);
-    wallLeft.scale(1, 1, 15);
+    Entity wallLeft(manager.createMesh("cube", vertices, indices, 36), -1.0f, 0.0f, 7.0f);
+    wallLeft.scale(1.0f, 1.0f, 15.0f);
     wallLeft.type = 2;
     entities.push_back(wallLeft);
 
-    Entity wallTop(manager.createMesh("cube", vertices, indices, 36), 3, 0, -1);
-    wallTop.scale(9, 1, 1);
+    Entity wallTop(manager.createMesh("cube", vertices, indices, 36), 3.0f, 0.0f, -1.0f);
+    wallTop.scale(9.0f, 1.0f, 1.0f);
     wallTop.type = 2;
     entities.push_back(wallTop);
 
-    Entity wallBottom(manager.createMesh("cube", vertices, indices, 36), 3, 0, 15);
-    wallBottom.scale(9, 1, 1);
+    Entity wallBottom(manager.createMesh("cube", vertices, indices, 36), 3.0f, 0.0f, 15.0f);
+    wallBottom.scale(9.0f, 1.0f, 1.0f);
     wallBottom.type = 2;
     entities.push_back(wallBottom);
+
+    Entity lightCube(manager.createMesh("cube", vertices, indices, 36), 0.0f, 7.0f, 0.0f);
 
     shader.use();
 
@@ -167,15 +172,14 @@ int main()
     glm::mat4 projection;
     projection = glm::perspective(glm::radians(60.0f), 1280.0f / 720.0f, 0.1f, 100.0f);
 
-    int viewLoc = glGetUniformLocation(shader.ID, "view");
-    int projectionLoc = glGetUniformLocation(shader.ID, "projection");
-    glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
-    glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
+    glm::vec3 pointLightPositions[] = {
+        glm::vec3(lightCube.x, lightCube.y,  lightCube.z),
+        glm::vec3(ball.x, ball.y, ball.z)
+    };
 
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     glEnable(GL_DEPTH_TEST);
 
-    glEnable(GL_DEPTH_TEST);
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     glfwSetCursorPosCallback(window, mouse_callback);
 
@@ -183,14 +187,46 @@ int main()
     while (!glfwWindowShouldClose(window))
     {
         processInput(window);
-        shader.use();
 
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        shader.use();
         view = camera.GetViewMatrix();
-        glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+
+		glm::vec3 objectColor(1.0f, 0.0f, 0.0f);
+
+        shader.setVec3("objectColor", objectColor);
+
+        shader.setVec3("dirLight.ambient", 0.01f, 0.01f, 0.01f);
+        shader.setVec3("dirLight.diffuse", 0.02f, 0.02f, 0.02f);
+        shader.setVec3("dirLight.specular", 0.05f, 0.05f, 0.05f);
+
+        shader.setVec3("pointLight.position", glm::vec3(lightCube.x,lightCube.y,lightCube.z));
+        shader.setFloat("pointLight.constant", 1.0f);
+        shader.setFloat("pointLight.linear", 0.09f);
+        shader.setFloat("pointLight.quadratic", 0.032f);
+        shader.setVec3("pointLight.ambient", glm::vec3(0.1f, 0.1f, 0.1f));
+        shader.setVec3("pointLight.diffuse", glm::vec3(0.1f, 0.1f, 0.1f));
+        shader.setVec3("pointLight.specular", glm::vec3(0.5f, 0.5f, 0.5f));
+        
+        shader.setMat4("view", view);
+        shader.setVec3("viewPos", camera.Position[0], camera.Position[1], camera.Position[2]);
+        shader.setVec3("dirLight.direction", -0.2f, -1.0f, -0.3f);
+		shader.setMat4("projection", projection);
+
+        for (int i = 0; i < 2; i++) {
+            std::stringstream ss;
+            ss << "pointLights[" << i << "]";
+            std::string currPointLight = ss.str();
+            shader.setVec3(currPointLight + ".position", pointLightPositions[i]);
+            shader.setFloat(currPointLight + ".constant", 1.0f);
+            shader.setFloat(currPointLight + ".linear", 0.09f);
+            shader.setFloat(currPointLight + ".quadratic", 0.032f);
+            shader.setVec3(currPointLight + ".ambient", glm::vec3(0.05f));
+            shader.setVec3(currPointLight + ".diffuse", objectColor);
+            shader.setVec3(currPointLight + ".specular", glm::vec3(0.5f));
+        }
 
         // Check collision against cube ball vs other entities
         for (Entity &e : entities) {
@@ -207,11 +243,28 @@ int main()
             shader.setMat4("model", model);
 
             glDrawArrays(GL_TRIANGLES, 0, 36);
+
+			// Update point light position to follow ball
+			pointLightPositions[1] = glm::vec3(entities[0].x, entities[0].y, entities[0].z);
+
         }
 
-        float currentFrame = glfwGetTime();
-        deltaTime = currentFrame - lastFrame;
-        lastFrame = currentFrame;
+        // Use light object shader and set its own view/projection uniforms
+        lightObjectShader.use();
+        view = camera.GetViewMatrix();
+        lightObjectShader.setMat4("view", view);
+        lightObjectShader.setMat4("projection", projection);
+        glm::mat4 model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(lightCube.x, lightCube.y, lightCube.z));
+        model = glm::scale(model, glm::vec3(lightCube.sizeX, lightCube.sizeY, lightCube.sizeZ));
+        lightObjectShader.setMat4("model", model);
+        glBindVertexArray(lightCube.mesh->vaoId);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
+
+        double currentFrame = glfwGetTime();
+        // assign deltaTime (float) using cast to avoid C4244 warnings
+        deltaTime = static_cast<float>(currentFrame - static_cast<double>(lastFrame));
+        lastFrame = static_cast<float>(currentFrame);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
@@ -230,7 +283,7 @@ void updateEntities(std::vector<Entity> &entityList) {
     }
 }
 
-void static checkCollision(Entity &a, Entity &b)
+void checkCollision(Entity &a, Entity &b)
 //Currently only calcuating on XZ plane (horizontal)
 {
     if (a.id != b.id) {
@@ -277,7 +330,6 @@ void static checkCollision(Entity &a, Entity &b)
         }
         
     };
-    
     
     
 }

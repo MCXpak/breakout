@@ -133,17 +133,19 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\learning_opengl\learning_opengl\learning_opengl\camera.h" />
-    <ClInclude Include="..\..\..\learning_opengl\learning_opengl\learning_opengl\Shader.h" />
     <ClInclude Include="..\..\..\learning_opengl\learning_opengl\learning_opengl\stb_image.h" />
     <ClInclude Include="entity.h" />
     <ClInclude Include="mesh.h" />
     <ClInclude Include="resource_manager.h" />
+    <ClInclude Include="Shader.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\learning_opengl\learning_opengl\learning_opengl\glad.c" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="lightObjectShader.fs" />
+    <None Include="lightObjectShader.vs" />
     <None Include="shader.fs" />
     <None Include="shader.vs" />
   </ItemGroup>

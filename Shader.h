@@ -95,7 +95,15 @@ public:
     {
         glUniformMatrix4fv(glGetUniformLocation(ID, name.c_str()), 1, GL_FALSE, &value[0][0]);
     } 
-    
+    void setVec3(const std::string& name, float v0, float v1, float v2) const
+    {
+        glUniform3f(glGetUniformLocation(ID, name.c_str()), v0, v1, v2);
+    }
+    void setVec3(const std::string& name, const glm::vec3& value) const
+    {
+        glUniform3fv(glGetUniformLocation(ID, name.c_str()), 1, &value[0]);
+    }
+
     void checkCompileErrors(unsigned int shader, std::string type)
     {
         int success;
