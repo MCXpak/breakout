@@ -1,7 +1,2 @@
 ﻿  main.cpp
-C:\Users\moura\OneDrive\Documents\Programming\brick_breaker\brick_breaker\brick_breaker\main.cpp(130,17): warning C4305: '=': truncation from 'double' to 'float'
-C:\Users\moura\OneDrive\Documents\Programming\brick_breaker\brick_breaker\brick_breaker\main.cpp(131,17): warning C4305: '=': truncation from 'double' to 'float'
-C:\Users\moura\OneDrive\Documents\Programming\brick_breaker\brick_breaker\brick_breaker\main.cpp(138,85): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
-C:\Users\moura\OneDrive\Documents\Programming\brick_breaker\brick_breaker\brick_breaker\main.cpp(138,79): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
-C:\Users\moura\OneDrive\Documents\Programming\brick_breaker\brick_breaker\brick_breaker\main.cpp(212,28): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
   brick_breaker.vcxproj -> C:\Users\moura\OneDrive\Documents\Programming\brick_breaker\brick_breaker\x64\Debug\brick_breaker.exe
