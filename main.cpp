@@ -20,10 +20,10 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
 void mouse_callback(GLFWwindow* window, double xposIn, double yposIn);
 void checkCollision(Entity& a, Entity& b);
-void updateEntities(std::vector<Entity> &entityList);
+void updateEntities(std::vector<Entity>& entityList, std::vector<std::vector<std::vector<int>>>& grid);
 void processPaddleInput(GLFWwindow* window, Entity& paddle);
 
-Camera camera(glm::vec3(3.0f, 10.0f, 15.0f));
+Camera camera(glm::vec3(3.0f, 15.0f, 20.0f));
 
 float deltaTime = 0.0f;	// Time between current frame and last frame
 float lastFrame = 0.0f; // Time of last frame
@@ -84,6 +84,15 @@ std::vector<float> vertices = {
      -0.5f,  0.5f, -0.5f,   0.0f, 1.0f, 0.0f,   0.0f, 1.0f
 };
 
+std::vector<float> plane_vertices = {
+     -0.5f,  0.5f, -0.5f,   0.0f, 1.0f, 0.0f,   0.0f, 1.0f,
+      0.5f,  0.5f, -0.5f,   0.0f, 1.0f, 0.0f,   1.0f, 1.0f,
+      0.5f,  0.5f,  0.5f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f,
+      0.5f,  0.5f,  0.5f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f,
+     -0.5f,  0.5f,  0.5f,   0.0f, 1.0f, 0.0f,   0.0f, 0.0f,
+     -0.5f,  0.5f, -0.5f,   0.0f, 1.0f, 0.0f,   0.0f, 1.0f
+};
+
 std::vector<int> indices = {  // note that we start from 0!
         0, 1, 3,   // first triangle
         1, 2, 3    // second triangle
@@ -94,11 +103,30 @@ float BOUNDARY_RIGHT = 13.0f;
 float BOUNDARY_TOP = -1.0f;
 float BOUNDARY_BOTTOM = 15.0f;
 
-std::vector<std::vector<int>> grid = {
-    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
-    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
-    {1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1},
-    {1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1}
+std::vector<std::vector<std::vector<int>>> grid = { 
+{
+    {1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1},
+    {1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1},
+    {1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1},
+    {1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1},
+    {1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1}
+}, 
+{
+    {1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1},
+    {1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1},
+    {1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1},
+    {1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1},
+    {1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1}
+}
+    };
+
+std::vector<glm::vec3> colorOptions = {
+    glm::vec3(1.0f, 0.2f, 0.2f),
+    glm::vec3(0.2f, 1.0f, 0.2f),
+    glm::vec3(0.2f, 0.2f, 1.0f),
+    glm::vec3(1.0f, 1.0f, 0.2f),
+    glm::vec3(1.0f, 0.2f, 1.0f),
+    glm::vec3(0.2f, 1.0f, 1.0f)
 };
 
 int main()
@@ -137,10 +165,17 @@ int main()
     std::vector<Entity> entities;
     std::vector<Entity> bricks;
 
+    // Create plane
+	Entity plane(manager.createMesh("plane", plane_vertices, indices, 6), &shader, &camera, 2.5f, -1.0f, 7.0f);
+	plane.scale(22.0f, 1.0f, 15.0f);
+	plane.type = 2;
+	plane.isCube = false;
+	plane.color = glm::vec3(0.2f, 0.2f, 0.2f);
+
     // Create ball (use float literals to avoid double->float truncation warnings)
     Entity ball(manager.createMesh("cube", vertices, indices, 36), &shader, &camera, 3.0f, 0.0f, 11.0f);
-    ball.velX = 0.001f;
-    ball.velZ = 0.001f;
+    ball.velX = 0.0003f;
+    ball.velZ = 0.0003f;
     ball.scale(0.8f);
 	ball.color = glm::vec3(1.0f, 1.0f, 1.0f);
     entities.push_back(ball);
@@ -148,37 +183,44 @@ int main()
 	Entity paddle(manager.createMesh("cube", vertices, indices, 36), &shader, &camera, 3.0f, 0.0f, 13.0f);
 	paddle.scale(3.0f, 0.5f, 1.0f);
 	paddle.type = 2;
+	paddle.color = glm::vec3(0.8f, 0.8f, 0.8f);
 	entities.push_back(paddle);
 
     // Create grid of breakout bricks (cast indices to float)
     for (int i = 0; i < static_cast<int>(grid.size()); i++) {
         for (int j = 0; j < static_cast<int>(grid[i].size()); j++) {
-            if (grid[i][j] == 1) {
-                Entity ent(manager.createMesh("cube", vertices, indices, 36), &shader, &camera,
-                           static_cast<float>(j + BOUNDARY_LEFT + 1), 0.0f, static_cast<float>(i));
-				ent.color = glm::vec3((std::rand() % 11) / 10.0, (std::rand() % 11) / 10.0, (std::rand() % 11) / 10.0);
-                entities.push_back(ent);
+            for (int k = 0; k < static_cast<int>(grid[i][j].size()); k++) {
+                if (grid[i][j][k] == 1) {
+                    Entity ent(manager.createMesh("cube", vertices, indices, 36), &shader, &camera,
+                               (float) (k + BOUNDARY_LEFT + 0.5), (float) i, (float) (j));
+                    ent.color = colorOptions[j];
+					ent.gridPos[0] = i;
+					ent.gridPos[1] = j;
+					ent.gridPos[2] = k;
+                    ent.scale(2.0f, 1.0f, 1.0f);
+                    entities.push_back(ent);
+                }
             }
         }
-    };
+	};
 
     Entity wallRight(manager.createMesh("cube", vertices, indices, 36), &shader, &camera, 13.0f, 0.0f, 7.0f);
     wallRight.scale(1.0f, 1.0f, 15.0f);
     wallRight.type = 2;
     entities.push_back(wallRight);
 
-    Entity wallLeft(manager.createMesh("cube", vertices, indices, 36), &shader, &camera, -7.0f, 0.0f, 7.0f);
+    Entity wallLeft(manager.createMesh("cube", vertices, indices, 36), &shader, &camera, -8.0f, 0.0f, 7.0f);
     wallLeft.scale(1.0f, 1.0f, 15.0f);
     wallLeft.type = 2;
     entities.push_back(wallLeft);
 
-    Entity wallTop(manager.createMesh("cube", vertices, indices, 36), &shader, &camera, 3.0f, 0.0f, -1.0f);
-    wallTop.scale(21.0f, 1.0f, 1.0f);
+    Entity wallTop(manager.createMesh("cube", vertices, indices, 36), &shader, &camera, 2.5f, 0.0f, -1.0f);
+    wallTop.scale(22.0f, 1.0f, 1.0f);
     wallTop.type = 2;
     entities.push_back(wallTop);
 
-    Entity wallBottom(manager.createMesh("cube", vertices, indices, 36), &shader, &camera, 3.0f, 0.0f, 15.0f);
-    wallBottom.scale(21.0f, 1.0f, 1.0f);
+    Entity wallBottom(manager.createMesh("cube", vertices, indices, 36), &shader, &camera, 2.5f, 0.0f, 15.0f);
+    wallBottom.scale(22.0f, 1.0f, 1.0f);
     wallBottom.type = 2;
     entities.push_back(wallBottom);
 
@@ -229,10 +271,12 @@ int main()
         }
 
         // Check collision against cube ball vs other entities
+		plane.Draw();
+
         for (Entity &e : entities) {
             checkCollision(entities[0], e);
 
-            updateEntities(entities);
+            updateEntities(entities, grid);
 
 			e.Draw();
 
@@ -253,12 +297,18 @@ int main()
     }
 }
 
-void updateEntities(std::vector<Entity> &entityList) {
+void updateEntities(std::vector<Entity> &entityList, std::vector<std::vector<std::vector<int>>> &grid) {
     //Find indexes to "disappear" and/or update
     
     for (Entity& e : entityList) {
         if (e.type == 3){
             e.translate(99, 99, 99);
+
+			grid[e.gridPos[0]][e.gridPos[1]][e.gridPos[2]] = 0;
+        }
+		// Check if there is nothing below current entity, if so, apply gravity
+        if (e.gridPos[0] > 0 && grid[e.gridPos[0] - 1][e.gridPos[1]][e.gridPos[2]] == 0) {
+            e.velY = -0.0001f;
         }
         e.update();
     }
@@ -267,7 +317,7 @@ void updateEntities(std::vector<Entity> &entityList) {
 void checkCollision(Entity &a, Entity &b)
 //Currently only calcuating on XZ plane (horizontal)
 {
-    if (a.id != b.id) {
+    if (a.id != b.id && b.y <= 0.0f) {
         //Check intersect
         if (a.minX <= b.maxX && a.maxX >= b.minX
             && a.minZ <= b.maxZ && a.maxZ >= b.minZ) {
@@ -310,7 +360,13 @@ void checkCollision(Entity &a, Entity &b)
             }
         }
         
-    };
+    }
+    if (b.y <= 0.0f) {
+		b.y = 0.0f;
+		b.velY = 0.0f;
+		b.updateBoundingBox();
+    }
+    ;
     
     
 }

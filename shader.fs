@@ -33,6 +33,7 @@ uniform PointLight pointLight;
 uniform PointLight pointLights[2];
 uniform vec3 viewPos;
 uniform vec3 objectColor;
+uniform bool isCube;
 
 const vec4 innerColor = vec4(0.5, 0.0, 0.0, 1.0);
 const vec2 center = vec2(0.5, 0.5);
@@ -49,10 +50,10 @@ void main()
 
     // Calc color
     //Chebyshev distance calculation
-    vec2 offset = abs(TexCoord - center);
-    float maxDist = max(offset.x, offset.y);
-    float factor = step(cutoffHalfSize, maxDist);
-    vec4 color = mix(vec4(vec3(1.0, 0.0, 0.0), 1.0), vec4(0.0), factor);
+    //vec2 offset = abs(TexCoord - center);
+    //float maxDist = max(offset.x, offset.y);
+    //float factor = step(cutoffHalfSize, maxDist);
+    //vec4 color = mix(vec4(vec3(1.0, 0.0, 0.0), 1.0), vec4(0.0), factor);
 
     // directional lighting
     vec3 result = vec3(0.0);
@@ -66,7 +67,32 @@ void main()
     //float factor = clamp(distance(TexCoord.xy, vec2(0.5,0.5)) / 0.7071, 0.0, 1.0);
     //FragColor = mix(texture(texture1, vec2(TexCoord.x, TexCoord.y) ), texture(texture2, vec2(TexCoord.x, TexCoord.y)), aMix);
     
-    FragColor = vec4(result, 1.0);
+    // Smooth thickness parameters
+    float border = 0.1;
+    float smoothness = 0.2;
+
+    // Create masks for each edge
+    vec2 bottomLeft = smoothstep(vec2(0.0), vec2(smoothness), TexCoord);
+    vec2 topRight = smoothstep(vec2(0.0), vec2(smoothness), 1.0 - TexCoord);
+    
+    // Combine masks (1.0 inside the face, 0.0 at the extreme edge)
+    float mask = bottomLeft.x * bottomLeft.y * topRight.x * topRight.y;
+
+    // Use another smoothstep to define the actual border thickness
+    float outlineFactor = smoothstep(border, border + smoothness, 1.0 - mask);
+    
+    // Mix between the black outline and your calculated lighting result
+    vec3 finalColor = mix(result, vec3(0.0), outlineFactor);
+    
+    if (isCube) {
+        FragColor = vec4(finalColor, 1.0);
+    } else {
+        FragColor = vec4(result, 1.0);
+    }
+
+    //FragColor = vec4(finalColor, 1.0);
+    
+    //FragColor = vec4(result, 1.0);
     //FragColor = vec4(0.4,0.2,0.2, 1.0);
 }
 

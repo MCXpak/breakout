@@ -18,6 +18,7 @@ public:
 	float x = 0;
 	float y = 0;
 	float z = 0;
+	int gridPos[3] = { 0, 0, 0 };
 	float sizeX = 1;
 	float sizeY = 1;
 	float sizeZ = 1;
@@ -30,6 +31,7 @@ public:
 	float velX = 0;
 	float velY = 0;
 	float velZ = 0;
+	bool isCube = true;
 	glm::vec3 color = glm::vec3(0.1f, 0.1f, 0.1f);
 	std::shared_ptr<Mesh> mesh;
 	Shader* shader;
@@ -108,6 +110,7 @@ public:
 		shader->setMat4("model", model);
 
 		shader->setVec3("objectColor", color);
+		shader->setBool("isCube", isCube);
 
 		glBindVertexArray(mesh->vaoId);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
