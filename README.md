@@ -3,7 +3,7 @@
 
 Adding outline to blocks, and added gravity to support multiple levels
 
-https://github.com/user-attachments/assets/77a3f34d-2973-47b7-ba9d-49d544e34b0e
+https://github.com/user-attachments/assets/cf4c033a-6a3f-424e-98c1-2db4ac36467e
 
 Added working paddle, ball acts as a point light, blocks have random colors
 
