@@ -31,6 +31,9 @@ public:
 	float velX = 0;
 	float velY = 0;
 	float velZ = 0;
+	int instances = 1;
+	std::vector<glm::vec2> instanceOffsets;
+	std::vector<glm::vec2> instanceVels;
 	bool isCube = true;
 	glm::vec3 color = glm::vec3(0.1f, 0.1f, 0.1f);
 	std::shared_ptr<Mesh> mesh;
@@ -48,6 +51,17 @@ public:
 		z = zCoord;
 
 		updateBoundingBox();
+	};
+
+	Entity(std::shared_ptr<Mesh> meshP, Shader* s, Camera* c, float xCoord, float yCoord, float zCoord, int ints)
+	{
+		mesh = meshP;
+		shader = s;
+		camera = c;
+		x = xCoord;
+		y = yCoord;
+		z = zCoord;
+		instances = ints;
 	};
 
 	void update() {
@@ -94,7 +108,6 @@ public:
 
 	void moveHorizontal(float x_movement) {
 		translate(x_movement, 0, 0);
-		std::cout << "Paddle moved to x: " << x << std::endl;
 	}
 
 	void Draw() {
@@ -114,7 +127,34 @@ public:
 
 		glBindVertexArray(mesh->vaoId);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
+	}
 
+	void DrawInstanced() {
+		shader->use();
+		glm::mat4 view = camera->GetViewMatrix();
+		glm::mat4 projection = glm::perspective(glm::radians(60.0f), 1280.0f / 720.0f, 0.1f, 100.0f);
+		
+		updateParticleVelocities();
+		updateInstanceOffsets();
+		shader->setMat4("view", view);
+		shader->setMat4("projection", projection);
+		glm::mat4 model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(x, y, z));
+		model = glm::scale(model, glm::vec3(sizeX, sizeY, sizeZ));
+		shader->setMat4("model", model);
+		shader->setVec3("objectColor", color);
+		glBindVertexArray(mesh->vaoId);
+		glDrawArraysInstanced(GL_TRIANGLES, 0, 6, instances);
+	}
+
+	void updateInstanceOffsets() {
+		mesh->updateInstanceOffsets(instanceOffsets);
+	}
+
+	void updateParticleVelocities() {
+		for (int i = 0; i < static_cast<int>(instanceOffsets.size()); i++) {
+			instanceOffsets[i] += instanceVels[i];
+		}
 	}
 	
 };

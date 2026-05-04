@@ -55,5 +55,11 @@
     <None Include="lightObjectShader.vs">
       <Filter>Source Files</Filter>
     </None>
+    <None Include="particleShader.fs">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="particleShader.vs">
+      <Filter>Source Files</Filter>
+    </None>
   </ItemGroup>
 </Project>

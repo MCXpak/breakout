@@ -37,4 +37,17 @@ public:
 		return meshCache[name];
 
 	};
+
+	std::shared_ptr<Mesh> createMesh(const std::string& name, const std::vector<float> vertexData, const std::vector<glm::vec2> offsetData)
+	{
+		if (getMesh(name) != NULL) {
+			return meshCache[name];
+		}
+
+		std::cout << "Creating " << name << " mesh..." << '\n';
+		meshCache[name] = std::make_shared<Mesh>(vertexData, offsetData);
+		std::cout << "Created " << name << " mesh." << '\n';
+		return meshCache[name];
+
+	};
 };

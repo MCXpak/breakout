@@ -12,6 +12,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include "entity.h"
 #include "resource_manager.h"
+#include <random>
 
 //BUG LIST
 // 1. Scaling to 0? How to deal? Should it be allowed ( I think so ?)
@@ -20,7 +21,7 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
 void mouse_callback(GLFWwindow* window, double xposIn, double yposIn);
 void checkCollision(Entity& a, Entity& b);
-void updateEntities(std::vector<Entity>& entityList, std::vector<std::vector<std::vector<int>>>& grid);
+void updateEntities(std::vector<Entity>& entityList, std::vector<std::vector<std::vector<int>>>& grid, Shader& shader, ResourceManager& manager);
 void processPaddleInput(GLFWwindow* window, Entity& paddle);
 
 Camera camera(glm::vec3(3.0f, 15.0f, 20.0f));
@@ -28,10 +29,14 @@ Camera camera(glm::vec3(3.0f, 15.0f, 20.0f));
 float deltaTime = 0.0f;	// Time between current frame and last frame
 float lastFrame = 0.0f; // Time of last frame
 float lastX = 400, lastY = 300;
-bool firstMouse = false;
+bool firstMouse = true; // initialize true so first mouse callback sets lastX/lastY
 float yaw = -90.0f;
 float pitch = 0.0f;
 float fov = 45.0f;
+
+std::random_device rd;
+std::mt19937 gen(rd());
+std::uniform_real_distribution<double> distr(-0.01, 0.01);
 
 std::vector<float> vertices = {
     // Position (3)  | Normal (3)     | Tex Coords (2)    
@@ -129,6 +134,19 @@ std::vector<glm::vec3> colorOptions = {
     glm::vec3(0.2f, 1.0f, 1.0f)
 };
 
+std::vector<float> quadVertices = {
+    // positions     // colors
+    -0.05f,  0.05f,  1.0f, 0.0f, 0.0f,
+     0.05f, -0.05f,  1.0f, 0.0f, 0.0f,
+    -0.05f, -0.05f,  1.0f, 0.0f, 0.0f,
+
+    -0.05f,  0.05f,  1.0f, 0.0f, 0.0f,
+     0.05f, -0.05f,  1.0f, 0.0f, 0.0f,
+     0.05f,  0.05f,  1.0f, 0.0f, 0.0f
+};
+
+std::vector<Entity> particles;
+
 int main()
 {
     glfwInit();
@@ -156,11 +174,19 @@ int main()
 
     Shader shader("./shader.vs", "./shader.fs");
     Shader lightObjectShader("./lightObjectShader.vs", "./lightObjectShader.fs");
-
-    glm::mat4 view = camera.GetViewMatrix();
+    Shader particleShader("./particleShader.vs", "./particleShader.fs");
+    
+    // projection can be calculated once (perspective parameters are constant)
     glm::mat4 projection;
     projection = glm::perspective(glm::radians(60.0f), 1280.0f / 720.0f, 0.1f, 100.0f);
 
+    // Upload projection to shaders that will use it (do once)
+    shader.use();
+    shader.setMat4("projection", projection);
+    lightObjectShader.use();
+    lightObjectShader.setMat4("projection", projection);
+    particleShader.use();
+    particleShader.setMat4("projection", projection);
 
     std::vector<Entity> entities;
     std::vector<Entity> bricks;
@@ -226,7 +252,7 @@ int main()
 
     Entity lightCube(manager.createMesh("cube", vertices, indices, 36), &lightObjectShader, &camera, 0.0f, 7.0f, 0.0f);
 
-    shader.use();
+    //Entity particles(manager.createMesh("particle", quadVertices, translations), &particleShader, &camera, 0.0f, 0.0f, 0.0f, translations.size());
 
     glm::vec3 pointLightPositions[] = {
         glm::vec3(lightCube.x, lightCube.y,  lightCube.z),
@@ -244,11 +270,14 @@ int main()
         processInput(window);
         processPaddleInput(window, entities[1]);
 
+        // Update view each frame to reflect camera movement
+        glm::mat4 view = camera.GetViewMatrix();
+
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        // Main shader: update view and camera position
         shader.use();
-        
         shader.setMat4("view", view);
         shader.setVec3("viewPos", camera.Position[0], camera.Position[1], camera.Position[2]);
 
@@ -276,7 +305,7 @@ int main()
         for (Entity &e : entities) {
             checkCollision(entities[0], e);
 
-            updateEntities(entities, grid);
+            updateEntities(entities, grid, particleShader, manager);
 
 			e.Draw();
 
@@ -285,7 +314,12 @@ int main()
 
         }
 
+        // ensure light object's view/projection are set (projection set once above)
         lightCube.Draw();
+
+        for (Entity &particle : particles) {
+            particle.DrawInstanced();
+		}
 
         double currentFrame = glfwGetTime();
         deltaTime = static_cast<float>(currentFrame - static_cast<double>(lastFrame));
@@ -297,13 +331,49 @@ int main()
     }
 }
 
-void updateEntities(std::vector<Entity> &entityList, std::vector<std::vector<std::vector<int>>> &grid) {
+void generateParticles(Entity &ent, Shader &particleShader, ResourceManager &manager) {
+    // Number of particles to generate for each explosion
+    const int PARTICLE_COUNT = 64;
+
+    // Create offsets and velocities for each particle
+    std::vector<glm::vec2> instanceOffsets;
+    std::vector<glm::vec2> instanceVels;
+
+    for (int i = 0; i < PARTICLE_COUNT; ++i) {
+        // Small position jitter around the entity's X,Y to spread particles
+        float offsetX = (float) (distr(gen));
+        float offsetY = (float) (distr(gen));
+        instanceOffsets.emplace_back(offsetX, offsetY);
+
+        // Random initial velocity for each particle
+        instanceVels.emplace_back((float) (distr(gen)), (float) (distr(gen)));
+    }
+
+    // Only create the particle entity if we have offsets
+    if (!instanceOffsets.empty()) {
+        Entity particleExplosion( manager.createMesh("particle", quadVertices, instanceOffsets), &particleShader, 
+            &camera, ent.x, ent.y, ent.z, (int) (instanceOffsets.size())
+        );
+		particleExplosion.color = ent.color;
+		std::cout << "Generated " << instanceOffsets.size() << " particles for explosion at (" << ent.x << ", " << ent.y << ", " << ent.z << ")" << std::endl;
+
+        // Attach instance data if Entity supports it (original code indicated these members)
+        particleExplosion.instanceOffsets = instanceOffsets;
+        particleExplosion.instanceVels = instanceVels;
+
+        particles.push_back(particleExplosion);
+    }
+}
+
+void updateEntities(std::vector<Entity>& entityList, std::vector<std::vector<std::vector<int>>>& grid, Shader& shader, ResourceManager& manager) {
     //Find indexes to "disappear" and/or update
     
     for (Entity& e : entityList) {
         if (e.type == 3){
-            e.translate(99, 99, 99);
+            generateParticles(e, shader, manager);
 
+            e.translate(99, 99, 99);
+            e.type = 0;
 			grid[e.gridPos[0]][e.gridPos[1]][e.gridPos[2]] = 0;
         }
 		// Check if there is nothing below current entity, if so, apply gravity
@@ -356,7 +426,6 @@ void checkCollision(Entity &a, Entity &b)
             }
             if (b.type == 1) {
                 b.type = 3;
-                std::cout << "Id " << b.id << "collision with Type " << b.type;
             }
         }
         

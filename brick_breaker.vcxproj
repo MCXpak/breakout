@@ -146,6 +146,8 @@
   <ItemGroup>
     <None Include="lightObjectShader.fs" />
     <None Include="lightObjectShader.vs" />
+    <None Include="particleShader.fs" />
+    <None Include="particleShader.vs" />
     <None Include="shader.fs" />
     <None Include="shader.vs" />
   </ItemGroup>
